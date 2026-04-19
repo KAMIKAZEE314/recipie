@@ -29,7 +29,7 @@ class Recipie():
 		if self.result.get_count() != 1:
 			self.items = []
 			for item in items:
-				self.items.append(Item(item.get_mod(), item.get_item(), item.get_count()/self.result.get_count()))
+				self.items.append(Item(item.get_item(), item.get_mod(), item.get_count()/self.result.get_count()))
 		else:
 			self.items = items
 
@@ -53,14 +53,12 @@ class Recipie():
 		return message
 
 	def json_form(self):
-		json_form = {"crafting_method": self.crafting_method, "result": self.result.json_form(), "dependencies": self.dependencies}
+		result_json = Item(self.result.get_item(), self.result.get_mod(), 1).json_form()
 		items = []
 		for item in self.items:
 			items.append(item.json_form())
 		
-		json_form["items"] = items
-
-		return json_form
+		return {"crafting_method": self.crafting_method, "result": result_json, "dependencies": self.dependencies, "items": items}
 				
 def dprint(text, end="\n"):
 	if debug:
@@ -68,7 +66,4 @@ def dprint(text, end="\n"):
 	return text
 
 if __name__ == "__main__":
-	with open("recipies.json", "r") as file:
-		raw_recipies = json.load(file)
-
-	dprint(raw_recipies)
+	pass
