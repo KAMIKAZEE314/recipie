@@ -34,7 +34,7 @@ class Recipie():
 
 	@classmethod
 	def from_json(self, json):
-		return Recipie(list(map(Item.from_json, json["items"])), Item.from_json(json["result"]), json["dependencies"], json["crafting_method"])
+		return Recipie(json["items"], json["result"], json["dependencies"], json["crafting_method"])
 
 	def __eq__(self, other):
 		if not isinstance(other, Recipie):
