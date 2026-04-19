@@ -1,4 +1,5 @@
 from math import *
+import json
 
 debug = True
 
@@ -16,6 +17,9 @@ class Item():
 	def get_mod(self): return self.mod
 	def get_item(self): return self.item
 	def get_count(self): return self.count
+
+	def json_form(self):
+		return {"mod": self.mod, "item": self.item, "count": self.count}
 
 class Recipie():
 	def __init__(self, items, result, dependencies=None, crafting_method="gather"):
@@ -47,6 +51,16 @@ class Recipie():
 		message += self.result.get_item().replace("_", " ").title()
 
 		return message
+
+	def json_form(self):
+		json_form = {"crafting_method": self.crafting_method, "result": self.result.json_form(), "dependencies": self.dependencies}
+		items = []
+		for item in self.items:
+			items.append(item.json_form())
+		
+		json_form["items"] = items
+
+		return json_form
 				
 def dprint(text, end="\n"):
 	if debug:
@@ -54,4 +68,7 @@ def dprint(text, end="\n"):
 	return text
 
 if __name__ == "__main__":
-	pass
+	with open("recipies.json", "r") as file:
+		raw_recipies = json.load(file)
+
+	dprint(raw_recipies)
