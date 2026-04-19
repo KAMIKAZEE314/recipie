@@ -1,5 +1,6 @@
 from math import *
 import json
+import os
 
 debug = True
 
@@ -11,7 +12,7 @@ class Item():
 	
 	@classmethod
 	def from_json(self, json):
-		return Item(json["item"], json["mod"], json["count"])
+		return Item(json["item"], json["mod"], int(json["count"]))
 
 	def __eq__(self, other):
 		if not isinstance(other, Item):
@@ -23,10 +24,10 @@ class Item():
 	def get_count(self): return self.count
 
 	def json_form(self):
-		return {"mod": self.mod, "item": self.item, "count": self.count}
+		return {"mod": self.mod, "item": self.item, "count": str(self.count)}
 
 class Recipie():
-	def __init__(self, items, result, dependencies=None, crafting_method="gather"):
+	def __init__(self, items, result, dependencies=[], crafting_method="gather"):
 		self.crafting_method = crafting_method
 		self.dependencies = dependencies
 		self.items = items
@@ -68,4 +69,41 @@ def dprint(text, end="\n"):
 	return text
 
 if __name__ == "__main__":
-	pass
+	# choose modpack
+	print("Modpacks: ")
+	with open("modpacks.json", "r") as file:
+		modpacks = json.load(file)
+		for modpack in modpacks:
+			print(modpack)
+	print()
+
+	modpack = input("Which modpack: ").lower().replace(" ", "_")
+
+	if not modpack in modpacks:
+		mods = list(map(lambda x: x.lower().replace(" ", "_"), input(f"What mods are in the modpack \"{modpack}\", that add crafting recipies(seperated by comma and if not sure list it): ").split(", ")))
+		dprint(mods)
+
+		with open("modpacks.json", "w") as file:
+			json.dump(modpacks, file)
+	
+	mods = modpacks[modpack]
+	mods.append("minecraft")
+
+	# load recipies
+	json_recipies = {}
+	
+	for mod in mods:
+		if not os.path.exists(mod):
+			os.mkdir(mod)
+			with open(f"{mod}/recipies.json", "w") as file:
+				json.dump({}, file)
+
+		with open(f"{mod}/recipies.json", "r") as file:
+			json_recipies |= json.load(file)
+
+	# convert recipie json to recipie class objects
+	recipies = {}
+	for i, recipie in enumerate(json_recipies):
+		recipies[list(json_recipies)[i]] = Recipie.from_json(recipie)
+
+	dprint(recipies)

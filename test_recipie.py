@@ -24,9 +24,9 @@ def test_Recipie_required_items():
 def test_Recipie_json():
 	recipie = Recipie([Item("coal"), Item("stick")], Item("torch", count=4), crafting_method="craft")
 	json_form = recipie.json_form()
-	assert json_form == {"crafting_method": "craft", "result": Item("torch", count=4).json_form(), "dependencies": None, "items": [Item("coal", count=1).json_form(), Item("stick", count=1).json_form()]}
+	assert json_form == {"crafting_method": "craft", "result": Item("torch", count=4).json_form(), "dependencies": [], "items": [Item("coal", count=1).json_form(), Item("stick", count=1).json_form()]}
 
 def test_Recipie_from_json():
 	recipie = Recipie([Item("coal"), Item("stick")], Item("torch", count=4), crafting_method="craft")
-	json_form = {"crafting_method": "craft", "result": Item("torch", count=4).json_form(), "dependencies": None, "items": [Item("coal", count=1).json_form(), Item("stick", count=1).json_form()]}
+	json_form = {"crafting_method": "craft", "result": Item("torch", count=4).json_form(), "dependencies": [], "items": [Item("coal", count=1).json_form(), Item("stick", count=1).json_form()]}
 	assert Recipie.from_json(json_form) == recipie
