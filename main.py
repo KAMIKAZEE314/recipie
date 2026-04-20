@@ -65,7 +65,7 @@ class Recipie():
 				
 def dprint(text, end="\n"):
 	if debug:
-		print(text, end=end)
+		print(f"\033[36m{text}\033[0m", end=end)
 	return text
 
 if __name__ == "__main__":
@@ -90,7 +90,7 @@ if __name__ == "__main__":
 	mods.append("minecraft")
 
 	# load recipies
-	json_recipies = {}
+	json_recipies = []
 	
 	for mod in mods:
 		if not os.path.exists(mod):
@@ -99,11 +99,17 @@ if __name__ == "__main__":
 				json.dump({}, file)
 
 		with open(f"{mod}/recipies.json", "r") as file:
-			json_recipies |= json.load(file)
+			if json.load(file) != {}:
+				file.seek(0)
+				json_recipies.append(json.load(file))
+
+	dprint(json_recipies)	
 
 	# convert recipie json to recipie class objects
 	recipies = {}
 	for i, recipie in enumerate(json_recipies):
-		recipies[list(json_recipies)[i]] = Recipie.from_json(recipie)
+		dprint(f"{i} {recipie}")
+		dprint(list(json_recipies)[i]["result"]["mod"]+":"+list(json_recipies)[i]["result"]["item"])
+		recipies[list(json_recipies)[i]["result"]["mod"]+":"+list(json_recipies)[i]["result"]["item"]] = Recipie.from_json(recipie)
 
 	dprint(recipies)
