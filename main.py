@@ -27,11 +27,12 @@ class Item():
 		return {"mod": self.mod, "item": self.item, "count": str(self.count)}
 
 class Recipie():
-	def __init__(self, items, result, dependencies=[], crafting_method="gather"):
+	def __init__(self, items, result, dependencies=[], crafting_method="gather", is_end_recipie=False):
 		self.crafting_method = crafting_method
 		self.dependencies = dependencies
 		self.items = items
 		self.result = result
+		self.is_end_recipie = is_end_recipier11t27
 
 	@classmethod
 	def from_json(self, json):
@@ -43,11 +44,14 @@ class Recipie():
 		return self.crafting_method == other.crafting_method and self.result == other.result and self.dependencies == other.dependencies and self.items == other.items
 
 	def get_required_items(self, count=1):
-		required_items = []
-		for item in self.items:
-			required_items.append(Item(item.get_mod(), item.get_item(), item.get_count()*ceil(count/self.result.get_count())))
-
-		return required_items
+		if not self.is_end_recipie:
+			required_items = []
+			for item in self.items:
+				required_items.append(Item(item.get_mod(), item.get_item(), item.get_count()*ceil(count/self.result.get_count())))
+		
+			return required_items
+		else:
+			return []
 
 	def output_form(self, count=1):
 		message = self.crafting_method.title() + " "
@@ -107,9 +111,26 @@ if __name__ == "__main__":
 
 	# convert recipie json to recipie class objects
 	recipies = {}
-	for i, recipie in enumerate(json_recipies):
-		dprint(f"{i} {recipie}")
-		dprint(list(json_recipies)[i]["result"]["mod"]+":"+list(json_recipies)[i]["result"]["item"])
-		recipies[list(json_recipies)[i]["result"]["mod"]+":"+list(json_recipies)[i]["result"]["item"]] = Recipie.from_json(recipie)
+	for recipie in json_recipies:
+		dprint("recipie")
+		if not recipie["result"]["mod"] in recipies.keys():
+			recipies[recipie["result"]["mod"]] = {}
+		recipies[recipie["result"]["mod"]][recipie["result"]["item"]] = Recipie.from_json(recipie)
 
 	dprint(recipies)
+
+	# main logic
+	target_mod = input("From which mod is the item: ").lower().replace(" ", "_")
+	if not target_mod in mods:
+		print(f"The mod \"{target_mod}\" isn't in your selected modpack")
+
+	required_items = []
+	crafting_steps = []
+	depth_list = [(target_mod, input("Which item do you want to craft: "))]
+	depth = 0
+	while depth_list != []:
+		index = 0
+		while index < len(depth_list):
+			mod, item = depth_list[index]
+			
+	
