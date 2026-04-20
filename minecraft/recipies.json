@@ -1,21 +1,46 @@
 {
-	"crafting_method": "craft",
-	"result": {
-		"mod": "minecraft",
-		"item": "torch",
-		"count": "4"
-	},
-	"dependencies": [],
-	"items": [
+	"minecraft:torch": [
 		{
-			"mod": "minecraft",
-			"item": "coal",
-			"count": "1"
+			"crafting_method": "craft",
+			"result": {
+				"mod": "minecraft",
+				"item": "torch",
+				"count": "4"
+			},
+			"dependencies": [],
+			"items": [
+				{
+					"mod": "minecraft",
+					"item": "coal",
+					"count": "1"
+				},
+				{
+					"mod": "minecraft",
+					"item": "stick",
+					"count": "1"
+				}
+			]
 		},
 		{
-			"mod": "minecraft",
-			"item": "stick",
-			"count": "1"
+			"crafting_method": "craft",
+			"result": {
+				"mod": "minecraft",
+				"item": "torch",
+				"count": "4"
+			},
+			"dependencies": [],
+			"items": [
+				{
+					"mod": "minecraft",
+					"item": "charcoal",
+					"count": "1"
+				},
+				{
+					"mod": "minecraft",
+					"item": "stick",
+					"count": "1"
+				}
+			]
 		}
 	]
 }

@@ -94,8 +94,18 @@ if __name__ == "__main__":
 	mods.append("minecraft")
 
 	# load recipies
-	json_recipies = []
+	json_recipies = [] # List to collect all recipies
 	
+	for mod in mods:
+		if not os.path.exists(mod):
+			os.mkdir(mod)
+
+			with open(f"{mod}/recipies.json", "w") as file:
+				json.dump({}, file)
+
+		with open(f"{mod}/recipies.json", "r") as file:
+			dprint(json.load(file))
+	"""
 	for mod in mods:
 		if not os.path.exists(mod):
 			os.mkdir(mod)
@@ -106,20 +116,22 @@ if __name__ == "__main__":
 			if json.load(file) != {}:
 				file.seek(0)
 				json_recipies.append(json.load(file))
-
-	dprint(json_recipies)	
+	"""
 
 	# convert recipie json to recipie class objects
+	"""
 	recipies = {}
 	for recipie in json_recipies:
 		dprint("recipie")
 		if not recipie["result"]["mod"] in recipies.keys():
 			recipies[recipie["result"]["mod"]] = {}
 		recipies[recipie["result"]["mod"]][recipie["result"]["item"]] = Recipie.from_json(recipie)
-
+	
 	dprint(recipies)
+	"""	
 
 	# main logic
+	"""
 	target_mod = input("From which mod is the item: ").lower().replace(" ", "_")
 	if not target_mod in mods:
 		print(f"The mod \"{target_mod}\" isn't in your selected modpack")
@@ -132,5 +144,5 @@ if __name__ == "__main__":
 		index = 0
 		while index < len(depth_list):
 			mod, item = depth_list[index]
-			
+	"""		
 	
