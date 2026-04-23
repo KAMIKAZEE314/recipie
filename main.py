@@ -86,6 +86,7 @@ if __name__ == "__main__":
 	if not modpack in modpacks:
 		mods = list(map(lambda x: x.lower().replace(" ", "_"), input(f"What mods are in the modpack \"{modpack}\", that add crafting recipies(seperated by comma and if not sure list it): ").split(", ")))
 		dprint(mods)
+		modpacks[modpack] = mods
 
 		with open("modpacks.json", "w") as file:
 			json.dump(modpacks, file)
@@ -94,7 +95,7 @@ if __name__ == "__main__":
 	mods.append("minecraft")
 
 	# load recipies
-	json_recipies = [] # List to collect all recipies
+	json_recipies = {}
 	
 	for mod in mods:
 		if not os.path.exists(mod):
@@ -104,21 +105,36 @@ if __name__ == "__main__":
 				json.dump({}, file)
 
 		with open(f"{mod}/recipies.json", "r") as file:
-			dprint(json.load(file))
-	"""
-	for mod in mods:
-		if not os.path.exists(mod):
-			os.mkdir(mod)
-			with open(f"{mod}/recipies.json", "w") as file:
-				json.dump({}, file)
+			content = json.load(file)
+			for key in content.keys():
+				if not key in json_recipies.keys():
+					json_recipies[key] = content[key]
+				else:
+					for key2 in json_recipies[key].keys():
+						if key2 in content[key].keys():
+							content[key][key2].extend(json_recipies[key][key2])
 
-		with open(f"{mod}/recipies.json", "r") as file:
-			if json.load(file) != {}:
-				file.seek(0)
-				json_recipies.append(json.load(file))
-	"""
+					json_recipies[key] |= content[key]
+
+	with open("debug.txt", "w") as file:
+		json.dump(json_recipies, file, indent=4)
+	dprint(json_recipies)
 
 	# convert recipie json to recipie class objects
+	recipies = {}
+	for mod in json_recipies:
+		for item in mod:
+			new_item = []
+			for recipie in item:
+				dprint(recipie)
+				new_item.append(Recipie.from_json(recipie))
+			if not mod in recipies.keys():
+				recipies[mod] = {}
+
+			recipies[mod][item] = new_item
+
+	dprint(recipies)
+
 	"""
 	recipies = {}
 	for recipie in json_recipies:
