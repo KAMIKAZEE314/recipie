@@ -27,12 +27,11 @@ class Item():
 		return {"mod": self.mod, "item": self.item, "count": str(self.count)}
 
 class Recipie():
-	def __init__(self, items, result, dependencies=[], crafting_method="gather", is_end_recipie=False):
+	def __init__(self, items, result, dependencies=[], crafting_method="gather"):
 		self.crafting_method = crafting_method
 		self.dependencies = dependencies
 		self.items = items
 		self.result = result
-		self.is_end_recipie = is_end_recipier11t27
 
 	@classmethod
 	def from_json(self, json):
@@ -71,6 +70,11 @@ def dprint(text, end="\n"):
 	if debug:
 		print(f"\033[36m{text}\033[0m", end=end)
 	return text
+
+def ddump(dic):
+	if debug:
+		with open("debug.txt", "a") as file:
+			json.dump(dic, file)
 
 if __name__ == "__main__":
 	# choose modpack
@@ -122,16 +126,18 @@ if __name__ == "__main__":
 
 	# convert recipie json to recipie class objects
 	recipies = {}
-	for mod in json_recipies:
-		for item in mod:
+	for mod_key in json_recipies:
+		mod = json_recipies[mod_key]
+		for item_key in mod:
+			item = mod[item_key]
 			new_item = []
 			for recipie in item:
 				dprint(recipie)
 				new_item.append(Recipie.from_json(recipie))
-			if not mod in recipies.keys():
-				recipies[mod] = {}
+			if not mod_key in recipies.keys():
+				recipies[mod_key] = {}
 
-			recipies[mod][item] = new_item
+			recipies[mod_key][item_key] = new_item
 
 	dprint(recipies)
 
