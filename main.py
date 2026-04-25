@@ -79,6 +79,64 @@ def ddump(dic):
 		with open("debug.txt", "a") as file:
 			json.dump(dic, file)
 
+def make_new_recipie(item):
+	item_output_form = item.get_item().replace("_", " ").title()
+	print(f"There is no recipie for the item \"{item_output_form}\"")
+	while True:
+		print("We are gonna guide you through recipie creation")
+		crafting_method = input(f"Which method do you use to make \"{item_output_form}\"(e.g smelt, craft, gather): ").lower().replace(" ", "_")
+		text_items = input(f"What Items are needed to make (seperated by commas)[pattern: count itemname mod]: ").split(",")
+		dprint(text_items)
+		item_objects = []
+		for text_item in text_items:
+			try:
+				split = text_item.split(" ").remove("")
+			except Exception:
+				split = text_item.split(" ")
+			dprint(split)
+			item_objects.append(Item(split[1].lower().replace(" ", "_"), split[2].lower().replace(" ", "_"), int(split[0])))
+		
+		while True:
+			try:
+				count = int(input(f"How many of \"{item_output_form}\" do you get with this recipie: "))
+				break
+			except ValueError:
+				print("You must input only numbers!")
+		
+		mod = input("Which mod implements this recipie: ").lower().replace(" ", "_")
+							
+		new_recipie = Recipie(item_objects, Item(item.get_item(), item.get_mod(), count), crafting_method)
+
+		if not os.path.exists(mod):
+			os.mkdir(mod)
+			with open(f"{mod}/recipies.json", "w") as file:
+				json.dump({}, file)
+
+		content = None
+		with open(f"{mod}/recipies.json", "r") as file:
+			content = json.load(file)
+		with open(f"{mod}/recipies.json", "w") as file:
+			if not mod in content.keys():
+				content[mod] = {}
+			if not new_recipie.result.get_item() in content[mod].keys():
+				content[mod][new_recipie.result.get_item()] = []
+						
+			content[mod][new_recipie.result.get_item()].append(new_recipie)
+
+			json.dump(content, file)
+
+		if not mod in mods:
+			print("Your new recipie is in a mod, that's not in this modpack. We still saved it")
+			continue
+		else:
+			if not new_recipie.result.get_name() in recipies[mod].keys():
+				recipies[mod][new_recipie.result.get_item()] = []
+			recipies[mod][new_recipie.result.get_item()].append(new_recipie)
+
+		if input(f"Do you want to add another relevant recipie for \"{item_output_form}\"[y, n]: ") == "n": break
+				
+
+
 if __name__ == "__main__":
 	# choose modpack
 	print("Modpacks: ")
@@ -180,37 +238,12 @@ if __name__ == "__main__":
 						print("You must enter only numbers!\n")
 			elif len(valid_recipies) == 1:
 				chosen_recipie = valid_recipies[0]
+				if input(f"Is the recipie \"{chosen_recipie.output_form()}\" good, if not then give us a new one[y, n]: ") == "n":
+					make_new_recipie(item)	
 			elif len(valid_recipies) == 0:
-				print(f"There is no recipie for the item \"{item_output_form}\"")
-				while True:
-					print("We are gonna guide you through recipie creation")
-					crafting_method = input(f"Which method do you use to make \"{item_output_form}\"(e.g smelt, craft, gather): ").lower().replace(" ", "_")
-					text_items = input(f"What Items are needed to make (seperated by commas)[pattern: count itemname mod]: ").split(",")
-					item_objects = []
-					for text_item in text_items:
-						try:
-							split = text_item.split(" ").remove("")
-						except ValueError:
-							split = text_item.split(" ")
-						item_objects.append(Item(split[1].lower().replace(" ", "_"), split[2].lower().replace(" ", "_"), int(split[0])))
-						
-					while True:
-						try:
-							count = int(input(f"How many of \"{item_output_form}\" do you get with this recipie: "))
-							break
-						except ValueError:
-							print("You must input only numbers!")
-					
-					mod = input("Which mod implements this recipie: ").lower().replace(" ", "_")
-									
-					new_recipie = Recipie(item_objects, Item(item.get_item(), item.get_mod(), count), crafting_method)
-
-					if not os.path.exists(mod):
-						os.mkdir(mod)
-					
-					if input(f"Do you want to add another relevant recipie for \"{item_output_form}\"[y, n]: ") == "n": break
-				
-				continue
+				make_new_recipie(item)
+			dprint(chosen_recipie.output_form())
+			quit()
 				
 	"""
 	target_mod = input("From which mod is the item: ").lower().replace(" ", "_")
