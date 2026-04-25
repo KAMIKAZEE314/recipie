@@ -27,15 +27,14 @@ class Item():
 		return {"mod": self.mod, "item": self.item, "count": str(self.count)}
 
 class Recipie():
-	def __init__(self, items, result, dependencies=[], crafting_method="gather"):
+	def __init__(self, items, result, crafting_method="gather"):
 		self.crafting_method = crafting_method
-		self.dependencies = dependencies
 		self.items = items
 		self.result = result
 
 	@classmethod
 	def from_json(self, json):
-		return Recipie(list(map(Item.from_json, json["items"])), Item.from_json(json["result"]), json["dependencies"], json["crafting_method"])
+		return Recipie(list(map(Item.from_json, json["items"])), Item.from_json(json["result"]), json["crafting_method"])
 
 	def __eq__(self, other):
 		if not isinstance(other, Recipie):
@@ -52,9 +51,13 @@ class Recipie():
 		else:
 			return []
 
-	def output_form(self, count=1):
+	def output_form(self, craft_count=1):
 		message = self.crafting_method.title() + " "
-		message += str(self.result.get_count()*ceil(count/self.result.get_count())) + " "
+		for item in self.items:
+			message += str(item.get_count()*ceil(craft_count/item.get_count())) + " " + item.get_item().replace("_", " ").title() + ", "
+		message = message[:-2]
+		message += " to "
+		message += str(self.result.get_count()*ceil(craft_count/self.result.get_count())) + " "
 		message += self.result.get_item().replace("_", " ").title()
 
 		return message
@@ -64,7 +67,7 @@ class Recipie():
 		for item in self.items:
 			items.append(item.json_form())
 		
-		return {"crafting_method": self.crafting_method, "result": self.result.json_form(), "dependencies": self.dependencies, "items": items}
+		return {"crafting_method": self.crafting_method, "result": self.result.json_form(), "items": items}
 				
 def dprint(text, end="\n"):
 	if debug:
@@ -82,7 +85,7 @@ if __name__ == "__main__":
 	with open("modpacks.json", "r") as file:
 		modpacks = json.load(file)
 		for modpack in modpacks:
-			print(modpack)
+			print(modpack.replace("_", " ").title())
 	print()
 
 	modpack = input("Which modpack: ").lower().replace(" ", "_")
@@ -141,18 +144,74 @@ if __name__ == "__main__":
 
 	dprint(recipies)
 
-	"""
-	recipies = {}
-	for recipie in json_recipies:
-		dprint("recipie")
-		if not recipie["result"]["mod"] in recipies.keys():
-			recipies[recipie["result"]["mod"]] = {}
-		recipies[recipie["result"]["mod"]][recipie["result"]["item"]] = Recipie.from_json(recipie)
-	
-	dprint(recipies)
-	"""	
-
 	# main logic
+	target_mod = input("From which mod is the item: ").lower().replace(" ", "_")
+	if not target_mod in mods:
+		print(f"The mod \"{target_mod}\" isn't in your selected modpack")
+		quit()
+
+	target_item = input("Which Item: ").lower().replace(" ", "_")
+
+	target_count = input("How much: ").lower().replace(" ", "_")
+
+	required_items = []
+	crafting_steps = []
+	depth_list = [Item(target_item, target_mod, target_count)]
+	depth = 0
+	while depth_list != []:
+		# expand recipies once
+		index = 0
+		while index < len(depth_list):
+			item = depth_list[index]
+			item_output_form = item.get_item().replace("_", " ").title()
+			valid_recipies = recipies[item.get_mod()].get(item.get_item(), [])
+			chosen_recipie = None
+			if len(valid_recipies) > 1:
+				while True:
+					print(f"What is your preferred recipie for \"{item_output_form}\": ")
+					for i, recipie in enumerate(valid_recipies):
+						print(f"{i}: \"{recipie.output_form()}\"")
+					print()
+					
+					try:
+						chosen_recipie = valid_recipies[int(input("Which Recipie: "))]
+						break
+					except ValueError:
+						print("You must enter only numbers!\n")
+			elif len(valid_recipies) == 1:
+				chosen_recipie = valid_recipies[0]
+			elif len(valid_recipies) == 0:
+				print(f"There is no recipie for the item \"{item_output_form}\"")
+				while True:
+					print("We are gonna guide you through recipie creation")
+					crafting_method = input(f"Which method do you use to make \"{item_output_form}\"(e.g smelt, craft, gather): ").lower().replace(" ", "_")
+					text_items = input(f"What Items are needed to make (seperated by commas)[pattern: count itemname mod]: ").split(",")
+					item_objects = []
+					for text_item in text_items:
+						try:
+							split = text_item.split(" ").remove("")
+						except ValueError:
+							split = text_item.split(" ")
+						item_objects.append(Item(split[1].lower().replace(" ", "_"), split[2].lower().replace(" ", "_"), int(split[0])))
+						
+					while True:
+						try:
+							count = int(input(f"How many of \"{item_output_form}\" do you get with this recipie: "))
+							break
+						except ValueError:
+							print("You must input only numbers!")
+					
+					mod = input("Which mod implements this recipie: ").lower().replace(" ", "_")
+									
+					new_recipie = Recipie(item_objects, Item(item.get_item(), item.get_mod(), count), crafting_method)
+
+					if not os.path.exists(mod):
+						os.mkdir(mod)
+					
+					if input(f"Do you want to add another relevant recipie for \"{item_output_form}\"[y, n]: ") == "n": break
+				
+				continue
+				
 	"""
 	target_mod = input("From which mod is the item: ").lower().replace(" ", "_")
 	if not target_mod in mods:
