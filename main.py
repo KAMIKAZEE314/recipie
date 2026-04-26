@@ -42,14 +42,11 @@ class Recipie():
 		return self.crafting_method == other.crafting_method and self.result == other.result and self.dependencies == other.dependencies and self.items == other.items
 
 	def get_required_items(self, count=1):
-		if not self.is_end_recipie:
-			required_items = []
-			for item in self.items:
-				required_items.append(Item(item.get_mod(), item.get_item(), item.get_count()*ceil(count/self.result.get_count())))
+		required_items = []
+		for item in self.items:
+			required_items.append(Item(item.get_mod(), item.get_item(), item.get_count()*ceil(count/self.result.get_count())))
 		
-			return required_items
-		else:
-			return []
+		return (required_items, ceil(count/self.result.get_count()))
 
 	def output_form(self, craft_count=1):
 		message = self.crafting_method.title() + " "
@@ -81,18 +78,15 @@ def ddump(dic):
 
 def make_new_recipie(item):
 	item_output_form = item.get_item().replace("_", " ").title()
-	print(f"There is no recipie for the item \"{item_output_form}\"")
 	while True:
+		print()
 		print("We are gonna guide you through recipie creation")
 		crafting_method = input(f"Which method do you use to make \"{item_output_form}\"(e.g smelt, craft, gather): ").lower().replace(" ", "_")
 		text_items = input(f"What Items are needed to make (seperated by commas)[pattern: count itemname mod]: ").split(",")
 		dprint(text_items)
 		item_objects = []
 		for text_item in text_items:
-			try:
-				split = text_item.split(" ").remove("")
-			except Exception:
-				split = text_item.split(" ")
+			split = text_item.strip().split()
 			dprint(split)
 			item_objects.append(Item(split[1].lower().replace(" ", "_"), split[2].lower().replace(" ", "_"), int(split[0])))
 		
@@ -121,15 +115,17 @@ def make_new_recipie(item):
 			if not new_recipie.result.get_item() in content[mod].keys():
 				content[mod][new_recipie.result.get_item()] = []
 						
-			content[mod][new_recipie.result.get_item()].append(new_recipie)
+			content[mod][new_recipie.result.get_item()].append(new_recipie.json_form())
 
-			json.dump(content, file)
+			json.dump(content, file, indent=4)
 
 		if not mod in mods:
 			print("Your new recipie is in a mod, that's not in this modpack. We still saved it")
 			continue
 		else:
-			if not new_recipie.result.get_name() in recipies[mod].keys():
+			if not mod in recipies.keys():
+				recipies[mod] = {}
+			if not new_recipie.result.get_item() in recipies[mod].keys():
 				recipies[mod][new_recipie.result.get_item()] = []
 			recipies[mod][new_recipie.result.get_item()].append(new_recipie)
 
@@ -222,41 +218,54 @@ if __name__ == "__main__":
 		while index < len(depth_list):
 			item = depth_list[index]
 			item_output_form = item.get_item().replace("_", " ").title()
-			valid_recipies = recipies[item.get_mod()].get(item.get_item(), [])
+			# get valid recipies
+			if not item.get_mod() in recipies.keys():
+				recipies[item.get_mod()] = {}
+			
+			valid_recipies = []
+			for mod_key in recipies:
+				mod = recipies[mod_key]
+				if item.get_item() in mod.keys():
+					valid_recipies.extend(mod[item.get_item()])
 			chosen_recipie = None
 			if len(valid_recipies) > 1:
+				print(f"\nWhat is your preferred recipie for \"{item_output_form}\": ")
+				for i, recipie in enumerate(valid_recipies):
+					print(f"{i}: \"{recipie.output_form()}\"")
+				print(f"{len(valid_recipies)}: Create new recipie")
+				
 				while True:
-					print(f"What is your preferred recipie for \"{item_output_form}\": ")
-					for i, recipie in enumerate(valid_recipies):
-						print(f"{i}: \"{recipie.output_form()}\"")
-					print()
-					
 					try:
-						chosen_recipie = valid_recipies[int(input("Which Recipie: "))]
-						break
+						chosen_num = int(input("Which option: "))
 					except ValueError:
 						print("You must enter only numbers!\n")
+						continue
+				
+					if chosen_num >= 0 and chosen_num <= len(valid_recipies):
+						if chosen_num == len(valid_recipies):
+							make_new_recipie(item)
+						else:
+							chosen_recipie = valid_recipies[chosen_num]
+						break
+					else:
+						print("Number is out of range!\n")
+						continue
+
+				if not chosen_recipie:
+					continue
+				
 			elif len(valid_recipies) == 1:
 				chosen_recipie = valid_recipies[0]
 				if input(f"Is the recipie \"{chosen_recipie.output_form()}\" good, if not then give us a new one[y, n]: ") == "n":
-					make_new_recipie(item)	
+					make_new_recipie(item)
+					continue
 			elif len(valid_recipies) == 0:
+				print(f"There is no recipie for the item \"{item_output_form}\"")
 				make_new_recipie(item)
+				continue
 			dprint(chosen_recipie.output_form())
+			
+			# expand recipie
+			recipie_items, result_count_multiplier = chosen_recipie.get_required_items(item.get_count())
+			dprint(recipie_items)
 			quit()
-				
-	"""
-	target_mod = input("From which mod is the item: ").lower().replace(" ", "_")
-	if not target_mod in mods:
-		print(f"The mod \"{target_mod}\" isn't in your selected modpack")
-
-	required_items = []
-	crafting_steps = []
-	depth_list = [(target_mod, input("Which item do you want to craft: "))]
-	depth = 0
-	while depth_list != []:
-		index = 0
-		while index < len(depth_list):
-			mod, item = depth_list[index]
-	"""		
-	

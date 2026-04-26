@@ -1,31 +1,31 @@
 {
-	"minecraft": {
-		"torch": [
-			{
-				"crafting_method": "craft",
-				"result": {
-					"mod": "minecraft",
-					"item": "torch",
-					"count": "4"
-				},
-				"items": [
-					{
-						"mod": "minecraft",
-						"item": "oak_plank",
-						"count": "1"
-					},
-					{
-						"mod": "minecraft",
-						"item": "stick",
-						"count": "1"
-					},
-					{
-						"mod": "minecraft",
-						"item": "fire_charge",
-						"count": "1"
-					}
-				]
-			}
-		]
-	}
+    "more_torch_recipies": {
+        "torch": [
+            {
+                "crafting_method": "craft",
+                "result": {
+                    "mod": "minecraft",
+                    "item": "torch",
+                    "count": "4"
+                },
+                "items": [
+                    {
+                        "mod": "minecraft",
+                        "item": "stick",
+                        "count": "1"
+                    },
+                    {
+                        "mod": "minecraft",
+                        "item": "plank",
+                        "count": "1"
+                    },
+                    {
+                        "mod": "minecraft",
+                        "item": "fire_charge",
+                        "count": "1"
+                    }
+                ]
+            }
+        ]
+    }
 }
