@@ -42,7 +42,7 @@ class Recipie():
 	def __eq__(self, other):
 		if not isinstance(other, Recipie):
 			return False
-		return self.crafting_method == other.crafting_method and self.result == other.result and self.dependencies == other.dependencies and self.items == other.items
+		return self.crafting_method == other.crafting_method and self.result == other.result and self.items == other.items
 
 	def get_required_items(self, count=1):
 		required_items = []
@@ -86,6 +86,8 @@ def make_new_recipie(item):
 		print()
 		print("We are gonna guide you through recipie creation")
 		crafting_method = input(f"Which method do you use to make \"{item_output_form}\"(e.g smelt, craft, gather): ").lower().replace(" ", "_")
+		if crafting_method in ["quit", "exit", "cancel"]:
+			return None
 		text_items = input(f"What Items are needed to make (seperated by commas)[pattern: count itemname mod]: ").split(",")
 		dprint(text_items)
 		item_objects = []
@@ -289,13 +291,16 @@ if __name__ == "__main__":
 
 	# merge same steps in crafting_steps
 	index = 0
-	for recipie, multiplier in crafting_steps:
+	while index < len(crafting_steps):
+		recipie, multiplier = crafting_steps[index]
 		index2 = 0
-		for recipie2, multiplier2 in crafting_steps:
-			if index != index and recipie == recipie2:
-				crafting_steps[crafting_steps.index((recipie, multiplier))] = (recipie, multiplier+multiplier2)
+		while index2 < len(crafting_steps):
+			recipie2, multiplier2 = crafting_steps[index2]
+			if index != index2 and recipie == recipie2:
+				crafting_steps[index] = (recipie, multiplier+multiplier2)
 				crafting_steps.remove((recipie2, multiplier2))
-			index2 += 1
+			else:
+				index2 += 1
 		index += 1
 
 	dprint(f"crafting_steps post: {crafting_steps}")

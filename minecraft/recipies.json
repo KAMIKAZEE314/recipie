@@ -114,6 +114,82 @@
                 },
                 "items": []
             }
+        ],
+        "compass": [
+            {
+                "crafting_method": "craft",
+                "result": {
+                    "mod": "minecraft",
+                    "item": "compass",
+                    "count": "1"
+                },
+                "items": [
+                    {
+                        "mod": "minecraft",
+                        "item": "iron_ingot",
+                        "count": "4"
+                    },
+                    {
+                        "mod": "minecraft",
+                        "item": "redstone_dust",
+                        "count": "1"
+                    }
+                ]
+            }
+        ],
+        "iron_ingot": [
+            {
+                "crafting_method": "smelt",
+                "result": {
+                    "mod": "minecraft",
+                    "item": "iron_ingot",
+                    "count": "1"
+                },
+                "items": [
+                    {
+                        "mod": "minecraft",
+                        "item": "raw_iron",
+                        "count": "1"
+                    }
+                ]
+            },
+            {
+                "crafting_method": "craft",
+                "result": {
+                    "mod": "minecraft",
+                    "item": "iron_ingot",
+                    "count": "1"
+                },
+                "items": [
+                    {
+                        "mod": "minecraft",
+                        "item": "iron_nugget",
+                        "count": "9"
+                    }
+                ]
+            }
+        ],
+        "raw_iron": [
+            {
+                "crafting_method": "gather",
+                "result": {
+                    "mod": "minecraft",
+                    "item": "raw_iron",
+                    "count": "1"
+                },
+                "items": []
+            }
+        ],
+        "redstone_dust": [
+            {
+                "crafting_method": "gather",
+                "result": {
+                    "mod": "minecraft",
+                    "item": "redstone_dust",
+                    "count": "1"
+                },
+                "items": []
+            }
         ]
     }
 }
