@@ -8,7 +8,7 @@ class Item():
 	def __init__(self, item, mod="minecraft", count=1):
 		self.mod = mod.lower().replace(" ", "")
 		self.item = item.lower().replace(" ", "_")
-		self.count = count
+		self.count = int(count)
 	
 	@classmethod
 	def from_json(self, json):
@@ -22,6 +22,9 @@ class Item():
 	def get_mod(self): return self.mod
 	def get_item(self): return self.item
 	def get_count(self): return self.count
+
+	def output_form(self):
+		return str(self.count) + "x " + self.item.replace("_", " ").title()
 
 	def json_form(self):
 		return {"mod": self.mod, "item": self.item, "count": str(self.count)}
@@ -44,17 +47,18 @@ class Recipie():
 	def get_required_items(self, count=1):
 		required_items = []
 		for item in self.items:
-			required_items.append(Item(item.get_mod(), item.get_item(), item.get_count()*ceil(count/self.result.get_count())))
+			required_items.append(Item(item.get_item(), item.get_mod(), item.get_count()*ceil(count/self.result.get_count())))
 		
 		return (required_items, ceil(count/self.result.get_count()))
 
 	def output_form(self, craft_count=1):
 		message = self.crafting_method.title() + " "
-		for item in self.items:
-			message += str(item.get_count()*ceil(craft_count/item.get_count())) + " " + item.get_item().replace("_", " ").title() + ", "
-		message = message[:-2]
-		message += " to "
-		message += str(self.result.get_count()*ceil(craft_count/self.result.get_count())) + " "
+		if len(self.items) > 0:
+			for item in self.items:
+				message += str(item.get_count()*craft_count) + " " + item.get_item().replace("_", " ").title() + ", "
+			message = message[:-2]
+			message += " to "
+		message += str(self.result.get_count()*craft_count) + " "
 		message += self.result.get_item().replace("_", " ").title()
 
 		return message
@@ -88,7 +92,10 @@ def make_new_recipie(item):
 		for text_item in text_items:
 			split = text_item.strip().split()
 			dprint(split)
-			item_objects.append(Item(split[1].lower().replace(" ", "_"), split[2].lower().replace(" ", "_"), int(split[0])))
+			if len(split) == 3:
+				item_objects.append(Item(split[1].lower().replace(" ", "_"), split[2].lower().replace(" ", "_"), int(split[0])))
+			else:
+				break
 		
 		while True:
 			try:
@@ -208,10 +215,8 @@ if __name__ == "__main__":
 
 	target_count = input("How much: ").lower().replace(" ", "_")
 
-	required_items = []
 	crafting_steps = []
 	depth_list = [Item(target_item, target_mod, target_count)]
-	depth = 0
 	while depth_list != []:
 		# expand recipies once
 		index = 0
@@ -268,4 +273,34 @@ if __name__ == "__main__":
 			# expand recipie
 			recipie_items, result_count_multiplier = chosen_recipie.get_required_items(item.get_count())
 			dprint(recipie_items)
-			quit()
+			dprint(result_count_multiplier)
+			for recipie_item in recipie_items:
+				dprint(recipie_item.output_form())
+			dprint(chosen_recipie.output_form(result_count_multiplier))
+			
+			crafting_steps.append((chosen_recipie, result_count_multiplier))
+			depth_list.extend(recipie_items)			
+
+			del depth_list[index]
+			index += len(recipie_items)
+	
+	crafting_steps.reverse()
+	dprint(f"crafting_steps pre: {crafting_steps}")
+
+	# merge same steps in crafting_steps
+	index = 0
+	for recipie, multiplier in crafting_steps:
+		index2 = 0
+		for recipie2, multiplier2 in crafting_steps:
+			if index != index and recipie == recipie2:
+				crafting_steps[crafting_steps.index((recipie, multiplier))] = (recipie, multiplier+multiplier2)
+				crafting_steps.remove((recipie2, multiplier2))
+			index2 += 1
+		index += 1
+
+	dprint(f"crafting_steps post: {crafting_steps}")
+
+	print("\nCrafting steps: \n")
+
+	for recipie, multiplier in crafting_steps:
+		print(recipie.output_form(multiplier))
