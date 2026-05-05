@@ -139,8 +139,19 @@ def make_new_recipie(item):
 			recipies[mod][new_recipie.result.get_item()].append(new_recipie)
 
 		if input(f"Do you want to add another relevant recipie for \"{item_output_form}\"[y, n]: ") == "n": break
-				
-
+	
+def get_nodes_at_depth(depth, tree, current_path=[]):
+	nodes = []
+	if depth != 0:
+		for base_node_key in tree:
+			base_node = tree[base_node_key]
+			if "children" in base_node.keys():
+				nodes.extend(get_nodes_at_depth(depth-1, base_node["children"], current_path + [base_node_key]))
+	else:
+		for base_node_key in tree:
+			base_node = tree[base_node_key]
+			nodes.append((base_node_key, current_path, base_node))
+	return nodes
 
 if __name__ == "__main__":
 	# choose modpack
@@ -216,7 +227,18 @@ if __name__ == "__main__":
 	target_item = input("Which Item: ").lower().replace(" ", "_")
 
 	target_count = input("How much: ").lower().replace(" ", "_")
+	
+	crafting_steps = []
+	crafting_tree = {
+		f"{target_mod}:{target_item}": {}
+	}
+	isnt_expanded = True
+	path = []
+	depth = 0
+	#while isnt_expanded:
+		
 
+	"""
 	crafting_steps = []
 	depth_list = [Item(target_item, target_mod, target_count)]
 	while depth_list != []:
@@ -309,3 +331,4 @@ if __name__ == "__main__":
 
 	for recipie, multiplier in crafting_steps:
 		print(recipie.output_form(multiplier))
+	"""
