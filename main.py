@@ -153,6 +153,18 @@ def get_nodes_at_depth(depth, tree, current_path=[]):
 			nodes.append((base_node_key, current_path, base_node))
 	return nodes
 
+def get_node_at_path(tree, path):
+	node = None
+	for pathpiece in path:
+		if not node:
+			node = tree.get(pathpiece, {})
+		else:
+			if "children" in node.keys():
+				node = node["children"].get(pathpiece, {})
+			else:
+				raise ValueError("Path doesn't exist")
+	return node
+
 if __name__ == "__main__":
 	# choose modpack
 	print("Modpacks: ")
