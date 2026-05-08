@@ -231,33 +231,33 @@ if __name__ == "__main__":
 	dprint(recipies)
 
 	# main logic
-	target_mod = input("From which mod is the item: ").lower().replace(" ", "_")
-	if not target_mod in mods:
-		print(f"The mod \"{target_mod}\" isn't in your selected modpack")
-		quit()
-
-	target_item = input("Which Item: ").lower().replace(" ", "_")
-
-	target_count = input("How much: ").lower().replace(" ", "_")
+	text_items = input("What Items do you want to craft (seperated by commas)[pattern: count itemname mod]: ").split(",")
+	dprint(text_items)
+	item_objects = []
+	for text_item in text_items:
+		split = text_item.strip().split()
+		dprint(split)
+		if len(split) == 3:
+			item_objects.append(Item(split[1].lower().replace(" ", "_"), split[2].lower().replace(" ", "_"), int(split[0])))
+		else:
+			break
 	
-	crafting_steps = []
-	crafting_tree = {
-		f"{target_mod}:{target_item}": {}
-	}
+	dprint(item_objects)
+	# make initial crafting tree
+	crafting_tree = {}
+	for item in item_objects:
+		key = f"{item.get_mod()}:{item.get_item()}"
+		crafting_tree[key] = {"count":item.get_count()}
+	
+	dprint(crafting_tree)
+	
 	isnt_expanded = True
-	path = []
 	depth = 0
-	#while isnt_expanded:
-		
-
-	"""
-	crafting_steps = []
-	depth_list = [Item(target_item, target_mod, target_count)]
-	while depth_list != []:
-		# expand recipies once
-		index = 0
-		while index < len(depth_list):
-			item = depth_list[index]
+	while isnt_expanded:
+		node_layer = get_nodes_at_depth(depth, crafting_tree)
+		for node in node_layer:
+			key, path, content = node
+			item = Item(key.split(":")[1], key.split(":")[0], content["count"])
 			item_output_form = item.get_item().replace("_", " ").title()
 			# get valid recipies
 			if not item.get_mod() in recipies.keys():
@@ -305,6 +305,23 @@ if __name__ == "__main__":
 				make_new_recipie(item)
 				continue
 			dprint(chosen_recipie.output_form())
+			
+			content["recipie"] = chosen_recipie
+
+			# expand recipie
+			recipie_items, result_count_multiplier = chosen_recipie.get_required_items(item.get_count())
+			
+			print(recipie_items)
+			quit()
+	"""
+	crafting_steps = []
+	depth_list = [Item(target_item, target_mod, target_count)]
+	while depth_list != []:
+
+		# expand recipies once
+		index = 0
+		while index < len(depth_list):
+			item = depth_list[index]
 			
 			# expand recipie
 			recipie_items, result_count_multiplier = chosen_recipie.get_required_items(item.get_count())
