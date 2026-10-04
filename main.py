@@ -255,64 +255,88 @@ if __name__ == "__main__":
 	depth = 0
 	while isnt_expanded:
 		node_layer = get_nodes_at_depth(depth, crafting_tree)
-		for node in node_layer:
-			key, path, content = node
-			item = Item(key.split(":")[1], key.split(":")[0], content["count"])
-			item_output_form = item.get_item().replace("_", " ").title()
-			# get valid recipies
-			if not item.get_mod() in recipies.keys():
-				recipies[item.get_mod()] = {}
-			
-			valid_recipies = []
-			for mod_key in recipies:
-				mod = recipies[mod_key]
-				if item.get_item() in mod.keys():
-					valid_recipies.extend(mod[item.get_item()])
-			chosen_recipie = None
-			if len(valid_recipies) > 1:
-				print(f"\nWhat is your preferred recipie for \"{item_output_form}\": ")
-				for i, recipie in enumerate(valid_recipies):
-					print(f"{i}: \"{recipie.output_form()}\"")
-				print(f"{len(valid_recipies)}: Create new recipie")
+		if node_layer != []:
+			for node in node_layer:
+				key, path, content = node
+				item = Item(key.split(":")[1], key.split(":")[0], content["count"])
+				item_output_form = item.get_item().replace("_", " ").title()
+				# get valid recipies
+				if not item.get_mod() in recipies.keys():
+					recipies[item.get_mod()] = {}
 				
-				while True:
-					try:
-						chosen_num = int(input("Which option: "))
-					except ValueError:
-						print("You must enter only numbers!\n")
-						continue
-				
-					if chosen_num >= 0 and chosen_num <= len(valid_recipies):
-						if chosen_num == len(valid_recipies):
-							make_new_recipie(item)
+				valid_recipies = []
+				for mod_key in recipies:
+					mod = recipies[mod_key]
+					if item.get_item() in mod.keys():
+						valid_recipies.extend(mod[item.get_item()])
+				chosen_recipie = None
+				if len(valid_recipies) > 1:
+					print(f"\nWhat is your preferred recipie for \"{item_output_form}\": ")
+					for i, recipie in enumerate(valid_recipies):
+						print(f"{i}: \"{recipie.output_form()}\"")
+					print(f"{len(valid_recipies)}: Create new recipie")
+					
+					while True:
+						try:
+							chosen_num = int(input("Which option: "))
+						except ValueError:
+							print("You must enter only numbers!\n")
+							continue
+					
+						if chosen_num >= 0 and chosen_num <= len(valid_recipies):
+							if chosen_num == len(valid_recipies):
+								make_new_recipie(item)
+							else:
+								chosen_recipie = valid_recipies[chosen_num]
+							break
 						else:
-							chosen_recipie = valid_recipies[chosen_num]
-						break
-					else:
-						print("Number is out of range!\n")
+							print("Number is out of range!\n")
+							continue
+	
+					if not chosen_recipie:
 						continue
-
-				if not chosen_recipie:
-					continue
-				
-			elif len(valid_recipies) == 1:
-				chosen_recipie = valid_recipies[0]
-				if input(f"Is the recipie \"{chosen_recipie.output_form()}\" good, if not then give us a new one[y, n]: ") == "n":
+					
+				elif len(valid_recipies) == 1:
+					chosen_recipie = valid_recipies[0]
+					if input(f"Is the recipie \"{chosen_recipie.output_form()}\" good, if not then give us a new one[y, n]: ") == "n":
+						make_new_recipie(item)
+						continue
+				elif len(valid_recipies) == 0:
+					print(f"There is no recipie for the item \"{item_output_form}\"")
 					make_new_recipie(item)
 					continue
-			elif len(valid_recipies) == 0:
-				print(f"There is no recipie for the item \"{item_output_form}\"")
-				make_new_recipie(item)
-				continue
-			dprint(chosen_recipie.output_form())
-			
-			content["recipie"] = chosen_recipie
+				dprint(chosen_recipie.output_form())
+				
+				content["recipie"] = chosen_recipie
 
-			# expand recipie
-			recipie_items, result_count_multiplier = chosen_recipie.get_required_items(item.get_count())
-			
-			print(recipie_items)
-			quit()
+				# expand recipie
+				recipie_items, result_count_multiplier = chosen_recipie.get_required_items(item.get_count())
+				
+				children = {}
+				for recipie_item in recipie_items:
+					children[recipie_item.get_mod()+":"+recipie_item.get_item()] = {"count": recipie_item.get_count()}
+	
+				content["children"] = children
+				dprint(content)
+				dprint(crafting_tree)
+		else:
+			isnt_expanded = False
+		
+		depth += 1
+
+	# remove some pieces of the tree
+	depth = 1
+	nodes = get_nodes_at_depth(depth, crafting_tree)
+	items = {}
+	for node in nodes: # convert to items
+		key, path, content = node
+		if not key in items:
+			items[key] = content["count"]
+		else:
+			items[key] += content["key"]
+
+	print(items)
+
 	"""
 	crafting_steps = []
 	depth_list = [Item(target_item, target_mod, target_count)]
