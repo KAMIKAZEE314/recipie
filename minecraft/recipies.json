@@ -190,6 +190,45 @@
                 },
                 "items": []
             }
+        ],
+        "furnace": [
+            {
+                "crafting_method": "craft",
+                "result": {
+                    "mod": "minecraft",
+                    "item": "furnace",
+                    "count": "1"
+                },
+                "items": [
+                    {
+                        "mod": "minecraft",
+                        "item": "cobblestone",
+                        "count": "8"
+                    }
+                ]
+            }
+        ],
+        "stone_pickaxe": [
+            {
+                "crafting_method": "craft",
+                "result": {
+                    "mod": "minecraft",
+                    "item": "stone_pickaxe",
+                    "count": "1"
+                },
+                "items": [
+                    {
+                        "mod": "minecraft",
+                        "item": "cobblestone",
+                        "count": "3"
+                    },
+                    {
+                        "mod": "minecraft",
+                        "item": "stick",
+                        "count": "2"
+                    }
+                ]
+            }
         ]
     }
 }

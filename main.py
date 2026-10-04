@@ -139,8 +139,31 @@ def make_new_recipie(item):
 			recipies[mod][new_recipie.result.get_item()].append(new_recipie)
 
 		if input(f"Do you want to add another relevant recipie for \"{item_output_form}\"[y, n]: ") == "n": break
-				
+	
+def get_nodes_at_depth(depth, tree, current_path=[]):
+	nodes = []
+	if depth != 0:
+		for base_node_key in tree:
+			base_node = tree[base_node_key]
+			if "children" in base_node.keys():
+				nodes.extend(get_nodes_at_depth(depth-1, base_node["children"], current_path + [base_node_key]))
+	else:
+		for base_node_key in tree:
+			base_node = tree[base_node_key]
+			nodes.append((base_node_key, current_path, base_node))
+	return nodes
 
+def get_node_at_path(tree, path):
+	node = None
+	for pathpiece in path:
+		if not node:
+			node = tree.get(pathpiece, {})
+		else:
+			if "children" in node.keys():
+				node = node["children"].get(pathpiece, {})
+			else:
+				raise ValueError("Path doesn't exist")
+	return node
 
 if __name__ == "__main__":
 	# choose modpack
@@ -208,69 +231,121 @@ if __name__ == "__main__":
 	dprint(recipies)
 
 	# main logic
-	target_mod = input("From which mod is the item: ").lower().replace(" ", "_")
-	if not target_mod in mods:
-		print(f"The mod \"{target_mod}\" isn't in your selected modpack")
-		quit()
+	text_items = input("What Items do you want to craft (seperated by commas)[pattern: count itemname mod]: ").split(",")
+	dprint(text_items)
+	item_objects = []
+	for text_item in text_items:
+		split = text_item.strip().split()
+		dprint(split)
+		if len(split) == 3:
+			item_objects.append(Item(split[1].lower().replace(" ", "_"), split[2].lower().replace(" ", "_"), int(split[0])))
+		else:
+			break
+	
+	dprint(item_objects)
+	# make initial crafting tree
+	crafting_tree = {}
+	for item in item_objects:
+		key = f"{item.get_mod()}:{item.get_item()}"
+		crafting_tree[key] = {"count":item.get_count()}
+	
+	dprint(crafting_tree)
+	
+	isnt_expanded = True
+	depth = 0
+	while isnt_expanded:
+		node_layer = get_nodes_at_depth(depth, crafting_tree)
+		if node_layer != []:
+			for node in node_layer:
+				key, path, content = node
+				item = Item(key.split(":")[1], key.split(":")[0], content["count"])
+				item_output_form = item.get_item().replace("_", " ").title()
+				# get valid recipies
+				if not item.get_mod() in recipies.keys():
+					recipies[item.get_mod()] = {}
+				
+				valid_recipies = []
+				for mod_key in recipies:
+					mod = recipies[mod_key]
+					if item.get_item() in mod.keys():
+						valid_recipies.extend(mod[item.get_item()])
+				chosen_recipie = None
+				if len(valid_recipies) > 1:
+					print(f"\nWhat is your preferred recipie for \"{item_output_form}\": ")
+					for i, recipie in enumerate(valid_recipies):
+						print(f"{i}: \"{recipie.output_form()}\"")
+					print(f"{len(valid_recipies)}: Create new recipie")
+					
+					while True:
+						try:
+							chosen_num = int(input("Which option: "))
+						except ValueError:
+							print("You must enter only numbers!\n")
+							continue
+					
+						if chosen_num >= 0 and chosen_num <= len(valid_recipies):
+							if chosen_num == len(valid_recipies):
+								make_new_recipie(item)
+							else:
+								chosen_recipie = valid_recipies[chosen_num]
+							break
+						else:
+							print("Number is out of range!\n")
+							continue
+	
+					if not chosen_recipie:
+						continue
+					
+				elif len(valid_recipies) == 1:
+					chosen_recipie = valid_recipies[0]
+					if input(f"Is the recipie \"{chosen_recipie.output_form()}\" good, if not then give us a new one[y, n]: ") == "n":
+						make_new_recipie(item)
+						continue
+				elif len(valid_recipies) == 0:
+					print(f"There is no recipie for the item \"{item_output_form}\"")
+					make_new_recipie(item)
+					continue
+				dprint(chosen_recipie.output_form())
+				
+				content["recipie"] = chosen_recipie
 
-	target_item = input("Which Item: ").lower().replace(" ", "_")
+				# expand recipie
+				recipie_items, result_count_multiplier = chosen_recipie.get_required_items(item.get_count())
+				
+				children = {}
+				for recipie_item in recipie_items:
+					children[recipie_item.get_mod()+":"+recipie_item.get_item()] = {"count": recipie_item.get_count()}
+	
+				content["children"] = children
+				dprint(content)
+				dprint(crafting_tree)
+		else:
+			isnt_expanded = False
+		
+		depth += 1
 
-	target_count = input("How much: ").lower().replace(" ", "_")
+	# remove some pieces of the tree
+	depth = 1
+	nodes = get_nodes_at_depth(depth, crafting_tree)
+	items = {}
+	for node in nodes: # convert to items
+		key, path, content = node
+		if not key in items:
+			items[key] = content["count"]
+		else:
+			items[key] += content["key"]
 
+	print(items)
+
+	"""
 	crafting_steps = []
 	depth_list = [Item(target_item, target_mod, target_count)]
 	while depth_list != []:
+
 		# expand recipies once
 		index = 0
 		while index < len(depth_list):
 			item = depth_list[index]
-			item_output_form = item.get_item().replace("_", " ").title()
-			# get valid recipies
-			if not item.get_mod() in recipies.keys():
-				recipies[item.get_mod()] = {}
-			
-			valid_recipies = []
-			for mod_key in recipies:
-				mod = recipies[mod_key]
-				if item.get_item() in mod.keys():
-					valid_recipies.extend(mod[item.get_item()])
-			chosen_recipie = None
-			if len(valid_recipies) > 1:
-				print(f"\nWhat is your preferred recipie for \"{item_output_form}\": ")
-				for i, recipie in enumerate(valid_recipies):
-					print(f"{i}: \"{recipie.output_form()}\"")
-				print(f"{len(valid_recipies)}: Create new recipie")
-				
-				while True:
-					try:
-						chosen_num = int(input("Which option: "))
-					except ValueError:
-						print("You must enter only numbers!\n")
-						continue
-				
-					if chosen_num >= 0 and chosen_num <= len(valid_recipies):
-						if chosen_num == len(valid_recipies):
-							make_new_recipie(item)
-						else:
-							chosen_recipie = valid_recipies[chosen_num]
-						break
-					else:
-						print("Number is out of range!\n")
-						continue
-
-				if not chosen_recipie:
-					continue
-				
-			elif len(valid_recipies) == 1:
-				chosen_recipie = valid_recipies[0]
-				if input(f"Is the recipie \"{chosen_recipie.output_form()}\" good, if not then give us a new one[y, n]: ") == "n":
-					make_new_recipie(item)
-					continue
-			elif len(valid_recipies) == 0:
-				print(f"There is no recipie for the item \"{item_output_form}\"")
-				make_new_recipie(item)
-				continue
-			dprint(chosen_recipie.output_form())
 			
 			# expand recipie
 			recipie_items, result_count_multiplier = chosen_recipie.get_required_items(item.get_count())
@@ -309,3 +384,4 @@ if __name__ == "__main__":
 
 	for recipie, multiplier in crafting_steps:
 		print(recipie.output_form(multiplier))
+	"""

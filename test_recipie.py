@@ -3,7 +3,7 @@ from main import Recipie, Item
 
 def test_Recipie_output():
 	recipie = Recipie([Item("coal"), Item("stick")], Item("torch", count=4), crafting_method="craft")
-	assert recipie.output_form(5) == "Craft 8 Torch"
+	assert recipie.output_form(5) == "Craft 5 Coal, 5 Stick to 20 Torch"
 
 def test_Recipie_required_items():
 	recipie = Recipie([Item("coal"), Item("stick")], Item("torch", count=4), crafting_method="craft")
@@ -24,7 +24,7 @@ def test_Recipie_required_items():
 def test_Recipie_json():
 	recipie = Recipie([Item("coal"), Item("stick")], Item("torch", count=4), crafting_method="craft")
 	json_form = recipie.json_form()
-	assert json_form == {"crafting_method": "craft", "result": Item("torch", count=4).json_form(), "dependencies": [], "items": [Item("coal", count=1).json_form(), Item("stick", count=1).json_form()]}
+	assert json_form == {"crafting_method": "craft", "result": Item("torch", count=4).json_form(), "items": [Item("coal", count=1).json_form(), Item("stick", count=1).json_form()]}
 
 def test_Recipie_from_json():
 	recipie = Recipie([Item("coal"), Item("stick")], Item("torch", count=4), crafting_method="craft")
